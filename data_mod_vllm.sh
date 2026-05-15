@@ -66,7 +66,7 @@ singularity exec $SIF bash -c "
 "
 Q_EXIT_CODE=$?
 
-# Return the same exit code as q_creation.py
+# Return the same exit code as data_mod.py
 exit $Q_EXIT_CODE
 
 kill $VLLM_PID

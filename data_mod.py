@@ -11,8 +11,10 @@ import pandas as pd
 
 load_dotenv()
 
+project_id = os.getenv("SLURM_JOB_ACCOUNT", "project_462000131")
+
 DATASET_NAME="AGBonnet/augmented-clinical-notes"
-DATASET_CACHE_DIR="/scratch/project_462000131/data/"
+DATASET_CACHE_DIR=f"/scratch/{project_id}/data/"
 
 dataset = load_dataset(DATASET_NAME, cache_dir=DATASET_CACHE_DIR)
 
