@@ -27,7 +27,7 @@ MODEL=$1
 JSON_NAME=$2
 BATCH_SIZE=$3
 
-singularity exec $SIF vllm serve $MODEL \
+srun singularity run $SIF vllm serve $MODEL \
 --tensor-parallel-size 2 \
 --chat-template-content-format openai \
 --load-format runai_streamer \

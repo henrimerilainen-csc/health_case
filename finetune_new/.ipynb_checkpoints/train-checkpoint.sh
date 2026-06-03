@@ -31,7 +31,7 @@ mkdir -p $MLFLOW_MLRUNS_DIR
 MLFLOW_EXPERIMENT="${MODEL_NAME##*/}structured-note-finetuned"
 
 # NOTE!!! Use the same json file name you used when submitting the data_mod_vllm job
-JSON_FILE=/scratch/${SLURM_JOB_ACCOUNT}/data/structured_notes.json
+JSON_FILE=/scratch/${SLURM_JOB_ACCOUNT}/data/structured_notes_gpt_oss_120b_v2.json
 
 export TOKENIZERS_PARALLELISM=false
 
