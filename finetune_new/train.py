@@ -29,21 +29,21 @@ def preprocess(examples, tokenizer, max_tokens=2048):
 
         # Build chat messages
         messages = [
-#             {
-#                 "role": "system",
-#                 "content": """You are a medical clinical documentation assistant. 
-# You task is to convert a dialogue between a doctor and patient into a structured clinical note in the following output format:
-# REASON FOR VISIT:
-# <Brief summary of why the patient is seeking care>
-# PATIENT DETAILS AND HISTORY:
-# <Age, gender, relevant demographics, relevant past medical history, conditions, medications, surgeries, lifestyle factors>
-# CURRENT STATUS:
-# <Current symptoms, findings, vitals, clinical observations>
-# TREATMENTS/ACTIONS:
-# <Medications prescribed, procedures performed, advice given>
-# FOLLOW-UP PLAN:
-# <Next steps, monitoring, referrals, timelines. Follow-up plan should not include "future" details that are mentioned in the note, but rather should infer what the next steps would be based on the found future details.>
-# """},
+            {
+                "role": "system",
+                "content": """You are a medical clinical documentation assistant. 
+You task is to convert a dialogue between a doctor and patient into a structured clinical note in the following output format:
+REASON FOR VISIT:
+<Brief summary of why the patient is seeking care>
+PATIENT DETAILS AND HISTORY:
+<Age, gender, relevant demographics, relevant past medical history, conditions, medications, surgeries, lifestyle factors>
+CURRENT STATUS:
+<Current symptoms, findings, vitals, clinical observations>
+TREATMENTS/ACTIONS:
+<Medications prescribed, procedures performed, advice given>
+FOLLOW-UP PLAN:
+<Next steps, monitoring, referrals, timelines. Follow-up plan should not include "future" details that are mentioned in the note, but rather should infer what the next steps would be based on the found future details.>
+"""},
             {"role": "user", "content": input_data},
             {"role": "assistant", "content": output},
         ]
