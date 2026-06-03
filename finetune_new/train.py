@@ -223,8 +223,8 @@ if __name__ == "__main__":
     )
 
     if rank == 0:
-        tokenized_val.save_to_disk(Path(args.json_path).parent / "tokenized_val")
-        raw_val.save_to_disk(Path(args.json_path).parent / "raw_val")
+        tokenized_val.save_to_disk(f"{Path(args.json_file).parent / 'tokenized_val'}")
+        raw_val.save_to_disk(f"{Path(args.json_file).parent / 'raw_val'}")
         print(f"Tokenized train size: {len(tokenized_train)}")
         print(f"Tokenized val size:   {len(tokenized_val)}")
 
