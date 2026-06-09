@@ -20,12 +20,26 @@ from transformers import (
 from functools import partial
 
 def preprocess(examples, tokenizer, max_tokens=2048):
-    """Convert input_data/output pairs into tokenized chat format."""
-    input_ids_list = []
-    labels_list = []
-    attention_mask_list = []
+    """
+    Convert chat examples into tokenized causal-LM training examples.
 
-    for input_data, output in zip(examples["conversation"], examples["structured_note"]):
+    Safeguards:
+    - Skip samples where the assistant response is completely truncated.
+    - Ensure labels and input_ids always have identical lengths.
+    - Ensure at least one non-masked label token exists.
+    """
+
+    input_ids_list = []
+    attention_mask_list = []
+    labels_list = []
+
+    skipped_no_response = 0
+    skipped_empty_labels = 0
+
+    for conversation, structured_note in zip(
+        examples["conversation"],
+        examples["structured_note"],
+    ):
 
         # Build chat messages
         messages = [
@@ -44,8 +58,8 @@ TREATMENTS/ACTIONS:
 FOLLOW-UP PLAN:
 <Next steps, monitoring, referrals, timelines. Follow-up plan should not include "future" details that are mentioned in the note, but rather should infer what the next steps would be based on the found future details.>
 """},
-            {"role": "user", "content": input_data},
-            {"role": "assistant", "content": output},
+            {"role": "user", "content": conversation},
+            {"role": "assistant", "content": structured_note},
         ]
 
         # Apply chat template — tokenize full conversation
@@ -55,40 +69,66 @@ FOLLOW-UP PLAN:
             add_generation_prompt=False,
         )
 
-        # Also build prompt-only part to know where assistant response starts
-        prompt_messages = messages[:-1]
         prompt_text = tokenizer.apply_chat_template(
-            prompt_messages,
+            messages[:-1],
             tokenize=False,
             add_generation_prompt=True,
         )
 
-        # Tokenize full conversation
-        tokenized = tokenizer(
+        full_enc = tokenizer(
             full_text,
             truncation=True,
             max_length=max_tokens,
             padding=False,
+            add_special_tokens=False,
         )
 
-        # Tokenize prompt only to get its length
-        prompt_tokenized = tokenizer(
+        prompt_enc = tokenizer(
             prompt_text,
             truncation=True,
             max_length=max_tokens,
             padding=False,
+            add_special_tokens=False,
         )
 
-        input_ids = tokenized["input_ids"]
-        attention_mask = tokenized["attention_mask"]
-        prompt_len = len(prompt_tokenized["input_ids"])
+        input_ids = full_enc["input_ids"]
+        attention_mask = full_enc["attention_mask"]
 
-        # Mask prompt tokens in labels — only compute loss on assistant response
+        # Safety: prompt length cannot exceed actual sequence length
+        prompt_len = min(len(prompt_enc["input_ids"]), len(input_ids))
+
+        # Assistant response completely truncated
+        if prompt_len >= len(input_ids):
+            skipped_no_response += 1
+            continue
+
         labels = [-100] * prompt_len + input_ids[prompt_len:]
+
+        # Safety check
+        if len(labels) != len(input_ids):
+            raise ValueError(
+                f"Label length mismatch: labels={len(labels)}, "
+                f"input_ids={len(input_ids)}"
+            )
+
+        valid_label_count = sum(label != -100 for label in labels)
+
+        if valid_label_count == 0:
+            skipped_empty_labels += 1
+            continue
 
         input_ids_list.append(input_ids)
         attention_mask_list.append(attention_mask)
         labels_list.append(labels)
+
+    print(
+        f"Skipped {skipped_no_response} samples "
+        f"(assistant response truncated)"
+    )
+    print(
+        f"Skipped {skipped_empty_labels} samples "
+        f"(no valid label tokens)"
+    )
 
     return {
         "input_ids": input_ids_list,
@@ -234,12 +274,12 @@ if __name__ == "__main__":
         disable_tqdm=True,
         output_dir=output_model_dir,
         save_strategy="steps",
-        save_steps=200,
+        save_steps=1000,
         save_total_limit=3,
         learning_rate=2e-5,
         weight_decay=0.01,
         bf16=True,
-        load_best_model_at_end=True,
+        load_best_model_at_end=False,
         per_device_train_batch_size=args.batch_size // world_size,
         per_device_eval_batch_size=args.batch_size // world_size,
         dataloader_num_workers=args.num_workers,
@@ -248,7 +288,7 @@ if __name__ == "__main__":
         dataloader_pin_memory=True,
         metric_for_best_model="eval_loss",
         eval_strategy="steps",
-        eval_steps=100,
+        eval_steps=1000,
         num_train_epochs=args.epochs,
         max_steps=args.max_steps,
         report_to=["mlflow"],

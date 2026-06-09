@@ -13,10 +13,14 @@
 module purge
 module use /appl/local/laifs/modules
 module load lumi-aif-singularity-bindings
-export SIF=/appl/local/laifs/containers/lumi-multitorch-u24r70f21m50t210-20260415_130625/lumi-multitorch-full-u24r70f21m50t210-20260415_130625.sif         #laifs-lumi-multi-latest.sif # tarkista onko tämä vai lumi-xxxxx
+export SIF=/appl/local/laifs/containers/lumi-multitorch-latest.sif         #laifs-lumi-multi-latest.sif # tarkista onko tämä vai lumi-xxxxx lumi-multitorch-u24r70f21m50t210-20260415_130625/lumi-multitorch-full-u24r70f21m50t210-20260415_130625.sif
 
 export HF_HOME=/scratch/${SLURM_JOB_ACCOUNT}/hf-cache/hub
 mkdir -p $HF_HOME
+
+singularity run $SIF bash -c "python -m venv --system-site-packages ./venv && source ./venv/bin/activate && pip install -U transformers==5.5.4"
+
+# export PYTHONPATH=$PYTHONPATH:./venv/lib/python3.12/site-packages
 
 export HF_TOKEN_PATH=~/.cache/huggingface/token
 
@@ -46,7 +50,7 @@ echo "Job started at $(date)"
 echo "Running on node: $(hostname)"
 echo "Job ID: $SLURM_JOB_ID"
 
-srun singularity exec $SIF python -m torch.distributed.run \
+srun singularity run $SIF python -m torch.distributed.run \
     --nnodes=$SLURM_JOB_NUM_NODES \
     --nproc_per_node=$SLURM_GPUS_PER_NODE \
     --node_rank $SLURM_PROCID \
