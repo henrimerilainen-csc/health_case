@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --account=project_462000131
-#SBATCH --partition=standard-g
+#SBATCH --account=project_xxx
+#SBATCH --partition=dev-g
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=56
 #SBATCH --mem=480G
-#SBATCH --time=24:00:00
+#SBATCH --time=3:00:00
 #SBATCH --gpus-per-node=8
 #SBATCH --output=./log/finetune_medgemma_mlflow/%j/output.log
 #SBATCH --error=./log/finetune_medgemma_mlflow/%j/error.log

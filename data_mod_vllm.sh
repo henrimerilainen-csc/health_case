@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=project_462000131
+#SBATCH --account=project_xxx
 #SBATCH --partition=small-g
 #SBATCH --ntasks=1
 #SBATCH --output=./log/data_mod/%j/output.log
@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=14
 #SBATCH --gpus-per-node=2
 #SBATCH --mem=120G
-#SBATCH --time=24:00:00
+#SBATCH --time=10:00:00
 #SBATCH --nodes=1
 
 module purge
